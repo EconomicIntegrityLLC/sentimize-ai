@@ -73,6 +73,14 @@ if "use_sample" not in st.session_state:
 
 _dark = st.session_state.dark_mode
 
+# ── Enable pinch-to-zoom on mobile ───────────────────────────────────────────
+
+st.markdown(
+    '<meta name="viewport" content="width=device-width, initial-scale=1.0, '
+    'maximum-scale=5.0, user-scalable=yes">',
+    unsafe_allow_html=True,
+)
+
 # ── Responsive CSS with theme variables ──────────────────────────────────────
 
 _t = dict(
@@ -98,9 +106,6 @@ st.markdown(
     f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Rock+Salt&display=swap');
-    </style>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <style>
 
     /* ── Base ──────────────────────────────────────────── */
     .block-container {{
