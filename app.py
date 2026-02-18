@@ -34,9 +34,11 @@ CREATED_DATE = "2/18/26"
 
 # ── Page config ──────────────────────────────────────────────────────────────
 
+_favicon = Image.open(LOGO_PATH) if LOGO_PATH.exists() else "🔥"
+
 st.set_page_config(
     page_title="PixelForge • Image Art Studio",
-    page_icon="🔥",
+    page_icon=_favicon,
     layout="wide",
     initial_sidebar_state="expanded",
 )
