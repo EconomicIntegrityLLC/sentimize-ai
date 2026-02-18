@@ -107,7 +107,7 @@ st.markdown(
 
     /* ── Responsive ────────────────────────────────────── */
     @media (max-width: 768px) {{
-        .block-container {{ max-width: 100%; padding: 0.8rem 0.8rem 1.5rem; }}
+        .block-container {{ max-width: 100%; padding: 2.5rem 0.8rem 1.5rem; }}
         .style-grid {{ grid-template-columns: 1fr 1fr !important; }}
         .hero-title {{ font-size: 1.3rem !important; }}
         .hero-sub   {{ font-size: 0.95rem !important; }}
