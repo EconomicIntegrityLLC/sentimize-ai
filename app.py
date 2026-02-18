@@ -1,4 +1,4 @@
-"""PixelForge — Image Art Studio by Economic Integrity LLC.
+"""Sentimize.ai — Image Art Studio by Economic Integrity LLC.
 
 Upload any photo (or snap a selfie) and transform it into pixel art,
 ASCII art, sketches, quadtree decompositions, pop art, or extract its
@@ -32,7 +32,7 @@ from transforms import (
 LOGO_PATH = Path(__file__).parent / "assets" / "logo.png"
 BRAND_COLOR = "#c8a84e"
 BRAND_NAME = "Economic Integrity LLC"
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.1.0"
 CREATED_DATE = "2/18/26"
 
 # ── Page config ──────────────────────────────────────────────────────────────
@@ -40,7 +40,7 @@ CREATED_DATE = "2/18/26"
 _favicon = Image.open(LOGO_PATH) if LOGO_PATH.exists() else "🔥"
 
 st.set_page_config(
-    page_title="PixelForge • Image Art Studio",
+    page_title="Sentimize.ai • Image Art Studio",
     page_icon=_favicon,
     layout="wide",
     initial_sidebar_state="expanded",
@@ -246,7 +246,7 @@ def render_brand_header() -> None:
     st.markdown(
         f'<div class="brand-header">'
         f'  {logo_html}'
-        f'  <p class="title">PixelForge</p>'
+        f'  <p class="title">Sentimize.ai</p>'
         f'</div>'
         f'<p class="brand-sub"><b>Turn any image into art.</b> — Image Art Studio</p>'
         f'<p class="brand-credit">{BRAND_NAME} IP — Created {CREATED_DATE}</p>',
@@ -258,7 +258,7 @@ def render_footer() -> None:
     """Render the branded footer."""
     st.markdown(
         f'<div class="app-footer">'
-        f'  PixelForge v{APP_VERSION} · '
+        f'  Sentimize.ai v{APP_VERSION} · '
         f'  <a href="https://github.com/EconomicIntegrityLLC" target="_blank">{BRAND_NAME}</a> · '
         f'  Powered by '
         f'  <a href="https://github.com/vinta/awesome-python" target="_blank">Awesome Python</a>'
@@ -273,7 +273,7 @@ def render_footer() -> None:
 with st.sidebar:
     if LOGO_PATH.exists():
         st.image(str(LOGO_PATH), width=60)
-    st.markdown("# PixelForge")
+    st.markdown("# Sentimize.ai")
     st.caption("Image Art Studio")
     st.divider()
 
@@ -313,7 +313,7 @@ if source is None:
 
     st.markdown(
         '<div class="hero-box">'
-        '  <p class="hero-title">PixelForge — Image Art Studio</p>'
+        '  <p class="hero-title">Sentimize.ai — Image Art Studio</p>'
         '  <p class="hero-sub">Upload a photo or snap a selfie. Get instant art.</p>'
         '  <p class="hero-desc">No AI APIs. No accounts. No cost. Pure Python open-source.</p>'
         '</div>',
@@ -374,7 +374,7 @@ with tab_px:
     st.image(px_result, width="stretch")
     st.download_button(
         "⬇️ Download pixel art", img_to_bytes(watermark(px_result)),
-        "pixelforge_pixel.png", "image/png", key="dl_px",
+        "sentimize_pixel.png", "image/png", key="dl_px",
     )
 
 
@@ -403,7 +403,7 @@ with tab_asc:
     )
     st.download_button(
         "⬇️ Download .txt", watermark_text(ascii_str).encode("utf-8"),
-        "pixelforge_ascii.txt", "text/plain", key="dl_ascii",
+        "sentimize_ascii.txt", "text/plain", key="dl_ascii",
     )
 
 
@@ -422,7 +422,7 @@ with tab_sk:
     st.image(sk_result, width="stretch")
     st.download_button(
         "⬇️ Download sketch", img_to_bytes(watermark(sk_result)),
-        "pixelforge_sketch.png", "image/png", key="dl_sk",
+        "sentimize_sketch.png", "image/png", key="dl_sk",
     )
 
 
@@ -444,7 +444,7 @@ with tab_qt:
     st.image(qt_result, width="stretch")
     st.download_button(
         "⬇️ Download quadtree", img_to_bytes(watermark(qt_result)),
-        "pixelforge_quadtree.png", "image/png", key="dl_qt",
+        "sentimize_quadtree.png", "image/png", key="dl_qt",
     )
 
 
@@ -464,7 +464,7 @@ with tab_pop:
     st.image(pop_result, width="stretch")
     st.download_button(
         "⬇️ Download pop art", img_to_bytes(watermark(pop_result)),
-        "pixelforge_popart.png", "image/png", key="dl_pop",
+        "sentimize_popart.png", "image/png", key="dl_pop",
     )
 
 
@@ -558,12 +558,12 @@ with tab_cbn:
     with dl1:
         st.download_button(
             "⬇️ Download template", img_to_bytes(watermark(cbn_outline)),
-            "pixelforge_coloring.png", "image/png", key="dl_cbn",
+            "sentimize_coloring.png", "image/png", key="dl_cbn",
         )
     with dl2:
         st.download_button(
             "⬇️ Download answer key", img_to_bytes(watermark(cbn_filled)),
-            "pixelforge_coloring_key.png", "image/png", key="dl_cbn_key",
+            "sentimize_coloring_key.png", "image/png", key="dl_cbn_key",
         )
 
 

@@ -1,4 +1,4 @@
-"""PixelForge — image art transformation engine.
+"""Sentimize.ai — image art transformation engine.
 
 Each function takes a PIL Image and returns a transformed PIL Image (or string for ASCII).
 All functions auto-constrain input size for performance.
@@ -8,7 +8,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageEnhance, ImageFont
 
 MAX_DIM = 800
-WATERMARK_TEXT = "Powered by Economic Integrity LLC  •  pixelforge.streamlit.app"
+WATERMARK_TEXT = "Powered by Economic Integrity LLC  •  sentimize.ai"
 BRAND_HEX = (200, 168, 78)  # #c8a84e
 
 
