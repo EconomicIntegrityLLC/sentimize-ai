@@ -269,3 +269,113 @@ def color_by_number(
     palette = [(i + 1, tuple(int(v) for v in c)) for i, c in enumerate(unique_colors)]
 
     return outline_img, quantized, palette
+
+
+# ---------------------------------------------------------------------------
+# 8. Mosaic / Stained Glass (Voronoi)
+# ---------------------------------------------------------------------------
+
+def mosaic(
+    image: Image.Image,
+    num_cells: int = 300,
+    border_width: int = 2,
+) -> Image.Image:
+    """Voronoi tessellation that turns a photo into stained-glass style art."""
+    from scipy.spatial import Voronoi
+
+    img = _constrain(image, max_dim=600).convert("RGB")
+    src = np.array(img)
+    h, w = src.shape[:2]
+
+    rng = np.random.default_rng(42)
+    points = np.column_stack([
+        rng.integers(0, w, size=num_cells),
+        rng.integers(0, h, size=num_cells),
+    ]).astype(np.float64)
+
+    far = max(w, h) * 4
+    corners = np.array([[-far, -far], [-far, far * 2], [far * 2, -far], [far * 2, far * 2]])
+    all_pts = np.vstack([points, corners])
+
+    vor = Voronoi(all_pts)
+
+    canvas = Image.new("RGB", (w, h), (0, 0, 0))
+    draw = ImageDraw.Draw(canvas)
+
+    for region_idx in vor.point_region[:num_cells]:
+        region = vor.regions[region_idx]
+        if not region or -1 in region:
+            continue
+
+        verts = [(vor.vertices[v][0], vor.vertices[v][1]) for v in region]
+        clipped = [
+            (max(0, min(w - 1, x)), max(0, min(h - 1, y)))
+            for x, y in verts
+        ]
+        if len(clipped) < 3:
+            continue
+
+        xs = [int(x) for x, _ in clipped]
+        ys = [int(y) for _, y in clipped]
+        cx = max(0, min(w - 1, sum(xs) // len(xs)))
+        cy = max(0, min(h - 1, sum(ys) // len(ys)))
+
+        r_size = max(3, min(20, (max(xs) - min(xs)) // 4, (max(ys) - min(ys)) // 4))
+        x0, x1 = max(0, cx - r_size), min(w, cx + r_size)
+        y0, y1 = max(0, cy - r_size), min(h, cy + r_size)
+        patch = src[y0:y1, x0:x1]
+        if patch.size == 0:
+            continue
+        avg = tuple(int(v) for v in patch.reshape(-1, 3).mean(axis=0))
+
+        draw.polygon(clipped, fill=avg)
+        if border_width > 0:
+            draw.polygon(clipped, outline=(20, 20, 20), width=border_width)
+
+    return canvas
+
+
+# ---------------------------------------------------------------------------
+# 9. Glitch Art
+# ---------------------------------------------------------------------------
+
+def glitch(
+    image: Image.Image,
+    intensity: int = 5,
+    seed: int = 42,
+) -> Image.Image:
+    """RGB channel shift + block displacement for a VHS/glitch aesthetic."""
+    img = _constrain(image).convert("RGB")
+    arr = np.array(img)
+    h, w = arr.shape[:2]
+    rng = np.random.default_rng(seed)
+    result = arr.copy()
+
+    shift_amount = intensity * 3
+    r, g, b = result[:, :, 0], result[:, :, 1], result[:, :, 2]
+    result[:, :, 0] = np.roll(r, shift_amount, axis=1)
+    result[:, :, 2] = np.roll(b, -shift_amount, axis=1)
+
+    num_blocks = intensity * 2
+    for _ in range(num_blocks):
+        bh = rng.integers(2, max(3, h // 8))
+        bw = rng.integers(w // 4, w)
+        y = rng.integers(0, h - bh)
+        x = rng.integers(0, max(1, w - bw))
+        shift = rng.integers(-w // 6, w // 6)
+        block = result[y:y + bh, x:x + bw].copy()
+        result[y:y + bh, :] = result[y:y + bh, :]
+        x_new = max(0, min(w - block.shape[1], x + shift))
+        result[y:y + bh, x_new:x_new + block.shape[1]] = block
+
+    num_lines = intensity * 4
+    for _ in range(num_lines):
+        y = rng.integers(0, h)
+        thickness = rng.integers(1, 3)
+        brightness = rng.integers(0, 40)
+        result[y:min(h, y + thickness), :] = np.clip(
+            result[y:min(h, y + thickness), :].astype(np.int16) + brightness,
+            0, 255,
+        ).astype(np.uint8)
+
+    return Image.fromarray(result)

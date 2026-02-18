@@ -18,6 +18,8 @@ from PIL import Image
 from transforms import (
     color_by_number,
     extract_palette,
+    glitch,
+    mosaic,
     pixelate,
     posterize,
     quadtree,
@@ -45,6 +47,8 @@ STYLES = [
     ("🎨", "Pop Art", "Bold posterised colours, Warhol-style"),
     ("🎯", "Palette", "Extract & visualise dominant colours"),
     ("🖍️", "Color It", "Turn any photo into a colour-by-number page"),
+    ("🪟", "Mosaic", "Stained-glass Voronoi tessellation"),
+    ("📺", "Glitch", "VHS channel-shift & block displacement"),
 ]
 
 TAB_LABELS = [f"{icon} {name}" for icon, name, _ in STYLES]
@@ -396,7 +400,7 @@ if st.session_state.use_sample:
             st.session_state.use_sample = False
             st.rerun()
 
-tab_px, tab_asc, tab_sk, tab_qt, tab_pop, tab_pal, tab_cbn = st.tabs(TAB_LABELS)
+tab_px, tab_asc, tab_sk, tab_qt, tab_pop, tab_pal, tab_cbn, tab_mos, tab_gli = st.tabs(TAB_LABELS)
 
 
 # ── 1  Pixel Art ─────────────────────────────────────────────────────────────
@@ -594,6 +598,44 @@ with tab_cbn:
             "⬇️ Download answer key", img_to_bytes(watermark(cbn_filled)),
             "$entimize_coloring_key.png", "image/png", key="dl_cbn_key",
         )
+
+
+# ── 8  Mosaic / Stained Glass ────────────────────────────────────────────────
+
+with tab_mos:
+    c1, c2, _ = st.columns([1, 1, 1], gap="medium")
+    with c1:
+        mos_cells = st.slider("Number of cells", 50, 800, 300, 25, key="mos_cells",
+                              help="More cells → finer detail")
+    with c2:
+        mos_border = st.slider("Border width", 0, 4, 2, key="mos_border",
+                               help="0 = no borders")
+    with st.spinner("Tessellating…"):
+        mos_result = mosaic(source, mos_cells, mos_border)
+    st.image(mos_result, width="stretch")
+    st.download_button(
+        "⬇️ Download mosaic", img_to_bytes(watermark(mos_result)),
+        "$entimize_mosaic.png", "image/png", key="dl_mos",
+    )
+
+
+# ── 9  Glitch Art ───────────────────────────────────────────────────────────
+
+with tab_gli:
+    c1, c2, _ = st.columns([1, 1, 1], gap="medium")
+    with c1:
+        gli_intensity = st.slider("Intensity", 1, 15, 5, key="gli_int",
+                                  help="Higher → more chaotic")
+    with c2:
+        gli_seed = st.slider("Variation", 1, 100, 42, key="gli_seed",
+                             help="Change for a different glitch pattern")
+    with st.spinner("Glitching…"):
+        gli_result = glitch(source, gli_intensity, gli_seed)
+    st.image(gli_result, width="stretch")
+    st.download_button(
+        "⬇️ Download glitch", img_to_bytes(watermark(gli_result)),
+        "$entimize_glitch.png", "image/png", key="dl_gli",
+    )
 
 
 # ── Footer (all pages) ──────────────────────────────────────────────────────
