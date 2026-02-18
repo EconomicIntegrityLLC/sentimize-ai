@@ -1,4 +1,4 @@
-"""Sentimize.ai — image art transformation engine.
+"""$entimize.ai — image art transformation engine.
 
 Each function takes a PIL Image and returns a transformed PIL Image (or string for ASCII).
 All functions auto-constrain input size for performance.

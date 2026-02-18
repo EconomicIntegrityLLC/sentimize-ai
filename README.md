@@ -1,4 +1,4 @@
-# Sentimize.ai — Image Art Studio
+# $entimize.ai — Image Art Studio
 
 **Transform any photo into stunning art styles — right in your browser.**
 
@@ -6,9 +6,9 @@ Created by **[Economic Integrity LLC](https://github.com/EconomicIntegrityLLC)**
 
 ---
 
-## What Is Sentimize.ai?
+## What Is $entimize.ai?
 
-Sentimize.ai is a free, browser-based image art studio. Upload any photo — or snap a selfie — and instantly transform it into seven distinct art styles. No accounts, no downloads, no cost.
+$entimize.ai is a free, browser-based image art studio. Upload any photo — or snap a selfie — and instantly transform it into seven distinct art styles. No accounts, no downloads, no cost.
 
 ---
 
@@ -41,7 +41,7 @@ Sentimize.ai is a free, browser-based image art studio. Upload any photo — or 
 
 This project is **free and open-source** under the MIT License. You are welcome to use it for personal or commercial projects.
 
-**If you use Sentimize.ai or any of its code, please credit us:**
+**If you use $entimize.ai or any of its code, please credit us:**
 
 > **Economic Integrity LLC**
 > [https://github.com/EconomicIntegrityLLC](https://github.com/EconomicIntegrityLLC)
