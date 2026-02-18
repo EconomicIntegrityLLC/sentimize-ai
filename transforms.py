@@ -5,9 +5,11 @@ All functions auto-constrain input size for performance.
 """
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageEnhance
+from PIL import Image, ImageDraw, ImageEnhance, ImageFont
 
 MAX_DIM = 800
+WATERMARK_TEXT = "Powered by Economic Integrity LLC  •  pixelforge.streamlit.app"
+BRAND_HEX = (200, 168, 78)  # #c8a84e
 
 
 def _constrain(image: Image.Image, max_dim: int = MAX_DIM) -> Image.Image:
@@ -19,6 +21,29 @@ def _constrain(image: Image.Image, max_dim: int = MAX_DIM) -> Image.Image:
         (int(image.width * ratio), int(image.height * ratio)),
         Image.LANCZOS,
     )
+
+
+def watermark(image: Image.Image) -> Image.Image:
+    """Append a branded footer strip to the bottom of an image."""
+    img = image.convert("RGB")
+    w = img.width
+    bar_h = max(22, w // 30)
+    font = _get_font(max(10, bar_h // 2))
+
+    bar = Image.new("RGB", (w, bar_h), (17, 17, 17))
+    draw = ImageDraw.Draw(bar)
+    draw.text((w // 2, bar_h // 2), WATERMARK_TEXT,
+              fill=BRAND_HEX, font=font, anchor="mm")
+
+    combined = Image.new("RGB", (w, img.height + bar_h))
+    combined.paste(img, (0, 0))
+    combined.paste(bar, (0, img.height))
+    return combined
+
+
+def watermark_text(text: str) -> str:
+    """Append a branded credit line to ASCII art text."""
+    return text + "\n\n" + WATERMARK_TEXT
 
 
 # ---------------------------------------------------------------------------
@@ -164,3 +189,83 @@ def extract_palette(
         counts[pixel] = counts.get(pixel, 0) + 1
 
     return sorted(counts.items(), key=lambda x: -x[1])[:n_colors]
+
+
+# ---------------------------------------------------------------------------
+# 7. Color-by-number generator
+# ---------------------------------------------------------------------------
+
+def _get_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    """Best-effort font loader that works across platforms."""
+    for name in ("arial.ttf", "Arial.ttf", "DejaVuSans.ttf", "LiberationSans-Regular.ttf"):
+        try:
+            return ImageFont.truetype(name, size)
+        except (OSError, IOError):
+            continue
+    try:
+        return ImageFont.load_default(size=size)
+    except TypeError:
+        return ImageFont.load_default()
+
+
+def color_by_number(
+    image: Image.Image,
+    n_colors: int = 8,
+    min_region_pct: float = 0.4,
+) -> tuple[Image.Image, Image.Image, list[tuple[int, tuple[int, int, int]]]]:
+    """Turn a photo into a color-by-number template.
+
+    Returns (outline_image, filled_preview, palette) where palette is a list
+    of (number, (r, g, b)) pairs.
+    """
+    from scipy import ndimage
+
+    img = _constrain(image, max_dim=600).convert("RGB")
+    h, w = img.height, img.width
+    total_pixels = h * w
+    min_size = max(20, int(total_pixels * min_region_pct / 100))
+
+    quantized = img.quantize(colors=n_colors).convert("RGB")
+    q_arr = np.array(quantized)
+
+    flat = q_arr.reshape(-1, 3)
+    unique_colors, inverse = np.unique(flat, axis=0, return_inverse=True)
+    color_map = (inverse + 1).reshape(h, w)  # 1-indexed
+
+    h_diff = np.pad(color_map[:, :-1] != color_map[:, 1:], ((0, 0), (0, 1)))
+    v_diff = np.pad(color_map[:-1, :] != color_map[1:, :], ((0, 1), (0, 0)))
+    boundary = h_diff | v_diff
+
+    outline_arr = np.full((h, w, 3), 255, dtype=np.uint8)
+    outline_arr[boundary] = [0, 0, 0]
+
+    outline_img = Image.fromarray(outline_arr)
+    draw = ImageDraw.Draw(outline_img)
+    font_size = max(8, min(13, w // 45))
+    font = _get_font(font_size)
+
+    for cidx in range(1, len(unique_colors) + 1):
+        mask = (color_map == cidx).astype(np.int32)
+        labeled, num_features = ndimage.label(mask)
+
+        for j in range(1, num_features + 1):
+            region = labeled == j
+            if np.sum(region) < min_size:
+                continue
+
+            ys, xs = np.where(region)
+            cy, cx = int(np.mean(ys)), int(np.mean(xs))
+
+            if not region[cy, cx]:
+                closest = np.argmin((ys - cy) ** 2 + (xs - cx) ** 2)
+                cy, cx = int(ys[closest]), int(xs[closest])
+
+            txt = str(cidx)
+            draw.text(
+                (cx, cy), txt,
+                fill=(130, 130, 130), font=font, anchor="mm",
+            )
+
+    palette = [(i + 1, tuple(int(v) for v in c)) for i, c in enumerate(unique_colors)]
+
+    return outline_img, quantized, palette

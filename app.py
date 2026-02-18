@@ -16,12 +16,15 @@ import streamlit as st
 from PIL import Image
 
 from transforms import (
+    color_by_number,
     extract_palette,
     pixelate,
     posterize,
     quadtree,
     sketch,
     to_ascii,
+    watermark,
+    watermark_text,
 )
 
 # ── Constants ────────────────────────────────────────────────────────────────
@@ -324,6 +327,7 @@ if source is None:
         ("🔲", "Quadtree", "Geometric recursive decomposition"),
         ("🎨", "Pop Art", "Bold posterised colours, Warhol-style"),
         ("🎯", "Palette", "Extract & visualise dominant colours"),
+        ("🖍️", "Color It", "Turn any photo into a colour-by-number page"),
     ]
 
     cards_html = '<div class="style-grid">'
@@ -348,9 +352,9 @@ if source is None:
 
 render_brand_header()
 
-tab_px, tab_asc, tab_sk, tab_qt, tab_pop, tab_pal = st.tabs(
+tab_px, tab_asc, tab_sk, tab_qt, tab_pop, tab_pal, tab_cbn = st.tabs(
     ["🟩 Pixel Art", "📝 ASCII Art", "✏️ Sketch",
-     "🔲 Quadtree", "🎨 Pop Art", "🎯 Palette"]
+     "🔲 Quadtree", "🎨 Pop Art", "🎯 Palette", "🖍️ Color It"]
 )
 
 
@@ -369,7 +373,7 @@ with tab_px:
         px_result = pixelate(source, px_block, px_colors)
     st.image(px_result, width="stretch")
     st.download_button(
-        "⬇️ Download pixel art", img_to_bytes(px_result),
+        "⬇️ Download pixel art", img_to_bytes(watermark(px_result)),
         "pixelforge_pixel.png", "image/png", key="dl_px",
     )
 
@@ -398,7 +402,7 @@ with tab_asc:
         unsafe_allow_html=True,
     )
     st.download_button(
-        "⬇️ Download .txt", ascii_str.encode("utf-8"),
+        "⬇️ Download .txt", watermark_text(ascii_str).encode("utf-8"),
         "pixelforge_ascii.txt", "text/plain", key="dl_ascii",
     )
 
@@ -417,7 +421,7 @@ with tab_sk:
         sk_result = sketch(source, sk_sigma, sk_inv)
     st.image(sk_result, width="stretch")
     st.download_button(
-        "⬇️ Download sketch", img_to_bytes(sk_result),
+        "⬇️ Download sketch", img_to_bytes(watermark(sk_result)),
         "pixelforge_sketch.png", "image/png", key="dl_sk",
     )
 
@@ -439,7 +443,7 @@ with tab_qt:
         qt_result = quadtree(source, qt_depth, qt_thresh, qt_border)
     st.image(qt_result, width="stretch")
     st.download_button(
-        "⬇️ Download quadtree", img_to_bytes(qt_result),
+        "⬇️ Download quadtree", img_to_bytes(watermark(qt_result)),
         "pixelforge_quadtree.png", "image/png", key="dl_qt",
     )
 
@@ -459,7 +463,7 @@ with tab_pop:
         pop_result = posterize(source, pop_levels, pop_sat)
     st.image(pop_result, width="stretch")
     st.download_button(
-        "⬇️ Download pop art", img_to_bytes(pop_result),
+        "⬇️ Download pop art", img_to_bytes(watermark(pop_result)),
         "pixelforge_popart.png", "image/png", key="dl_pop",
     )
 
@@ -509,6 +513,58 @@ with tab_pal:
     )
     st.plotly_chart(fig, key="palette_chart")
     st.code(" | ".join(hex_colors), language=None)
+
+
+# ── 7  Color By Number ──────────────────────────────────────────────────────
+
+with tab_cbn:
+    c1, c2, _ = st.columns([1, 1, 1], gap="medium")
+    with c1:
+        cbn_colors = st.slider("Number of colours", 4, 16, 8, key="cbn_colors",
+                               help="Fewer → simpler to colour, more → finer detail")
+    with c2:
+        cbn_peek = st.checkbox("Show completed preview", False, key="cbn_peek")
+
+    with st.spinner("Generating colour-by-number template…"):
+        cbn_outline, cbn_filled, cbn_palette = color_by_number(
+            source, cbn_colors
+        )
+
+    legend_cols = st.columns(min(len(cbn_palette), 12), gap="small")
+    for i, (num, (r, g, b)) in enumerate(cbn_palette):
+        hx = f"#{r:02x}{g:02x}{b:02x}"
+        with legend_cols[i % len(legend_cols)]:
+            st.markdown(
+                f'<div style="display:flex;align-items:center;gap:6px;">'
+                f'<div style="width:22px;height:22px;border-radius:4px;'
+                f'background:{hx};border:1px solid #444;flex-shrink:0;"></div>'
+                f'<span style="font-weight:700;font-size:0.85rem;">{num}</span>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
+    if cbn_peek:
+        col_a, col_b = st.columns(2, gap="medium")
+        with col_a:
+            st.caption("Template")
+            st.image(cbn_outline, width="stretch")
+        with col_b:
+            st.caption("Completed")
+            st.image(cbn_filled, width="stretch")
+    else:
+        st.image(cbn_outline, width="stretch")
+
+    dl1, dl2 = st.columns(2, gap="medium")
+    with dl1:
+        st.download_button(
+            "⬇️ Download template", img_to_bytes(watermark(cbn_outline)),
+            "pixelforge_coloring.png", "image/png", key="dl_cbn",
+        )
+    with dl2:
+        st.download_button(
+            "⬇️ Download answer key", img_to_bytes(watermark(cbn_filled)),
+            "pixelforge_coloring_key.png", "image/png", key="dl_cbn_key",
+        )
 
 
 # ── Footer (all pages) ──────────────────────────────────────────────────────
